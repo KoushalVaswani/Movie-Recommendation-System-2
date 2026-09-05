@@ -1,84 +1,174 @@
-# 🎬 Movie Recommendation System
+# 🎬 CineMatch — Movie Recommendation System
 
-A content-based movie recommender with a FastAPI backend and Streamlit frontend, enriched with live data from the OMDb API.
+A content-based movie recommendation engine with a decoupled architecture: a **FastAPI** backend serving the ML model, a **Streamlit** frontend for the UI, and live enrichment via the **OMDb API**.
 
-## Architecture
+🔗 **Live Demo:** [movie-recommendation-system-2-kv96.streamlit.app](https://movie-recommendation-system-2-kv96.streamlit.app)
+🔗 **API Docs:** [movie-recommendation-system-2-2.onrender.com/docs](https://movie-recommendation-system-2-2.onrender.com/docs)
 
-Streamlit (frontend) → FastAPI (backend) → OMDb API (enrichment)
-                              ↓
-                    Precomputed similarity model
-                    (TF-IDF + Cosine Similarity)
+> Note: The backend is hosted on Render's free tier, which spins down after inactivity. The first request after idle time may take 20–30 seconds to wake up.
 
-The recommendation logic runs entirely inside a FastAPI service, decoupled from the UI. Streamlit only calls the API and renders the response — it has no direct access to the model.
+---
 
-## Features
+## 🧠 How It Works
 
-- Content-based filtering using genres, keywords, cast, and director metadata
-- TF-IDF vectorization + cosine similarity for finding similar movies
-- Live poster, plot, and rating enrichment via OMDb API
-- REST API with interactive docs (`/docs`) built on FastAPI
+1. Movies are represented as "tags" combining genres, keywords, cast, and director
+2. **TF-IDF vectorization** converts these tags into numerical vectors
+3. **Cosine similarity** finds the closest movies in that vector space
+4. The FastAPI backend serves these recommendations as JSON
+5. Each result is enriched in real time with posters, plot, and ratings from OMDb
+6. Streamlit renders everything as an interactive UI — but never touches the model directly
 
-## Tech Stack
+```
+┌─────────────┐        HTTP        ┌─────────────┐        HTTP        ┌─────────────┐
+│  Streamlit  │ ─────────────────▶ │   FastAPI   │ ─────────────────▶ │    OMDb     │
+│  (Frontend) │ ◀───────────────── │  (Backend)  │ ◀───────────────── │    (API)    │
+└─────────────┘                    └─────────────┘                    └─────────────┘
+                                          │
+                                          ▼
+                               TF-IDF + Cosine Similarity
+                                (computed on demand)
+```
 
-- **Backend:** FastAPI, scikit-learn, pandas
-- **Frontend:** Streamlit
-- **External API:** OMDb
-- **Dataset:** TMDB 5000 Movies Dataset
+---
 
-## Project Structure
+## ✨ Features
 
-    movie-recommender/
-    ├── api/
-    │   ├── main.py
-    │   └── data/
-    │       ├── movies.pkl
-    │       └── similarity.pkl
-    ├── streamlit_app/
-    │   └── app.py
-    ├── build_model.py
-    ├── .env (not committed)
-    ├── .gitignore
-    └── requirements.txt
+- 🎯 Content-based recommendations using genre, keyword, cast, and director similarity
+- ⚡ Fully decoupled REST API — model logic is independent of the UI
+- 🖼️ Live poster, plot, and IMDb rating enrichment via OMDb
+- 📖 Auto-generated interactive API docs (Swagger UI at `/docs`)
+- 🎨 Responsive card-based UI with match-score visualization
+- ☁️ Fully deployed — backend on Render, frontend on Streamlit Community Cloud
 
-## Running Locally
+---
 
-1. Clone the repo and create a virtual environment
+## 🛠️ Tech Stack
 
-       python -m venv venv
-       venv\Scripts\activate
-
-2. Install dependencies
-
-       pip install -r requirements.txt
-
-3. Add your OMDb API key to a `.env` file in the root
-
-       OMDB_API_KEY=your_key_here
-
-4. Start the backend
-
-       cd api
-       uvicorn main:app --reload
-
-5. In a separate terminal, start the frontend
-
-       cd streamlit_app
-       streamlit run app.py
-
-## API Endpoints
-
-| Endpoint | Description |
+| Layer | Technology |
 |---|---|
-| `GET /` | Health check |
-| `GET /movies` | List all available movie titles |
-| `GET /recommend/{movie_title}` | Get top-N similar movies with enriched details |
+| Backend | FastAPI, Uvicorn |
+| ML / Data | scikit-learn (TF-IDF, Cosine Similarity), pandas, scipy |
+| Frontend | Streamlit |
+| External API | OMDb |
+| Dataset | TMDB 5000 Movies Dataset |
+| Deployment | Render (backend), Streamlit Community Cloud (frontend) |
 
-## Known Limitations
+---
 
-- Dataset is limited to ~4,800 movies (TMDB 5000), so recommendations for less mainstream titles can be weaker
-- Genre-based similarity can sometimes overweight broad genre overlap; keyword and director signals are more discriminative but limited by dataset size
+## 📁 Project Structure
 
-## Author
+```
+movie-recommender/
+├── api/
+│   ├── main.py                 # FastAPI app & endpoints
+│   ├── requirements.txt
+│   └── data/
+│       ├── movies.pkl          # Preprocessed movie metadata
+│       └── tfidf_vectors.npz   # Sparse TF-IDF vectors
+├── streamlit_app/
+│   ├── app.py                  # Streamlit UI, calls the API
+│   └── requirements.txt
+├── build_model.py              # Model training / preprocessing script
+├── .env                        # API keys (not committed)
+├── .gitignore
+└── README.md
+```
+
+---
+
+## 🚀 Running Locally
+
+**1. Clone and set up a virtual environment**
+```bash
+git clone https://github.com/KoushalVaswani/Movie-Recommendation-System-2.git
+cd Movie-Recommendation-System-2
+python -m venv venv
+venv\Scripts\activate
+```
+
+**2. Install dependencies**
+```bash
+pip install -r api/requirements.txt
+pip install -r streamlit_app/requirements.txt
+```
+
+**3. Add your OMDb API key**
+
+Create a `.env` file in the root:
+```
+OMDB_API_KEY=your_key_here
+```
+Get a free key at [omdbapi.com](https://www.omdbapi.com/apikey.aspx)
+
+**4. Start the backend**
+```bash
+cd api
+uvicorn main:app --reload
+```
+
+**5. Start the frontend** (in a separate terminal)
+```bash
+cd streamlit_app
+streamlit run app.py
+```
+
+> To run against the local backend instead of the deployed one, update `API_URL` in `streamlit_app/app.py` to `http://127.0.0.1:8000`
+
+---
+
+## 🔌 API Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/` | Health check |
+| `GET` | `/movies` | List all available movie titles |
+| `GET` | `/recommend/{movie_title}` | Get top-N similar movies with enriched details |
+
+**Example request:**
+```
+GET /recommend/Inception?num_recommendations=5
+```
+
+**Example response:**
+```json
+{
+  "movie": "Inception",
+  "recommendations": [
+    {
+      "title": "The Prestige",
+      "match_score": 82.4,
+      "poster": "https://...",
+      "plot": "...",
+      "rating": "8.5",
+      "year": "2006"
+    }
+  ]
+}
+```
+
+---
+
+## ⚠️ Known Limitations
+
+- Dataset is limited to ~4,800 movies (TMDB 5000), so recommendations for niche or newer titles may be weaker
+- Genre-based similarity can overweight broad genre overlap between unrelated movies; keyword and director signals are more discriminative but constrained by dataset size
+- No user-personalization yet — recommendations are purely content-based, not collaborative
+- Render's free tier causes a cold-start delay after inactivity
+
+---
+
+## 🔮 Future Improvements
+
+- Hybrid recommendations combining content-based + collaborative filtering
+- Larger, more current movie dataset
+- User accounts with rating history
+- CI/CD pipeline via GitHub Actions for automated deployment
+
+---
+
+## 👨‍💻 Author
 
 **Koushal Vaswani**
-[LinkedIn](https://www.linkedin.com/in/koushal-vaswani-56dg65/) · [GitHub](https://github.com/KoushalVaswani)"# Movie-Recommendation-System-2" 
+Machine Learning Student
+
+[LinkedIn](https://www.linkedin.com/in/koushal-vaswani-56dg65/) · [GitHub](https://github.com/KoushalVaswani)
