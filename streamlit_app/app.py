@@ -32,9 +32,12 @@ div[data-testid="stMetric"]{
 
 /* Fixed-size poster images */
 div[data-testid="stImage"] img {
-    height: 350px;
+    width: 220px;
+    height: 330px;
     object-fit: cover;
     border-radius: 8px;
+    display: block;
+    margin: 0 auto;
 }
 
 /* Equal height cards */
@@ -128,7 +131,7 @@ if st.button("🎬 Get Recommendations"):
         for movie in recommendations:
             with st.container(border=True):
                 if movie["poster"] and movie["poster"] != "N/A":
-                    st.image(movie["poster"], width='stretch')
+                    st.image(movie["poster"])
 
                 st.markdown(f"**{movie['title']}** ({movie['year']})")
                 st.write(f"🎯 Match Score: {movie['match_score']}%")
