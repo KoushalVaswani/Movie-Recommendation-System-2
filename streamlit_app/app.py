@@ -125,20 +125,17 @@ if st.button("🎬 Get Recommendations"):
         st.subheader("🎬 Recommended Movies")
         st.success(f"Showing top {num_recommendations} recommendations for '{selected_movie}'")
 
-        cols = st.columns(min(num_recommendations, 5))
+        for movie in recommendations:
+            with st.container(border=True):
+                if movie["poster"] and movie["poster"] != "N/A":
+                    st.image(movie["poster"], width='stretch')
 
-        for idx, movie in enumerate(recommendations):
-            with cols[idx % len(cols)]:
-                with st.container(border=True):
-                    if movie["poster"] and movie["poster"] != "N/A":
-                        st.image(movie["poster"], use_container_width=True)
+                st.markdown(f"**{movie['title']}** ({movie['year']})")
+                st.write(f"🎯 Match Score: {movie['match_score']}%")
+                st.progress(movie['match_score'] / 100)
 
-                    st.markdown(f"**{movie['title']}** ({movie['year']})")
-                    st.write(f"🎯 Match Score: {movie['match_score']}%")
-                    st.progress(movie['match_score'] / 100)
+                if movie["rating"]:
+                    st.write(f"⭐ IMDb: {movie['rating']}")
 
-                    if movie["rating"]:
-                        st.write(f"⭐ IMDb: {movie['rating']}")
-
-                    with st.expander("Plot"):
-                        st.write(movie["plot"])
+                with st.expander("Plot"):
+                    st.write(movie["plot"])
